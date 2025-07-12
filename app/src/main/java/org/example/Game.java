@@ -1,29 +1,47 @@
+package org.example;
+
+import org.example.Board;
+import org.example.GameLog;
+
 import java.util.Scanner;
 
 public class Game {
     private Board board;
     private Scanner scanner;
+    private GameLog gameLog;
 
     public Game() {
-        board = new Board();
         scanner = new Scanner(System.in);
+        gameLog = new GameLog();
     }
 
     public void start() {
         System.out.println("Welcome to Tic-Tac-Toe!");
         boolean playing = true;
+        char currentStarter = 'X';  // Start with X by default
 
         while (playing) {
             board = new Board();
-            playOneGame();
-            playing = askToPlayAgain();
+            String result = playOneGame(currentStarter);
+            gameLog.recordResult(result);
+            gameLog.printLog();
+
+            // Swap starting player (loser goes first, winner goes second)
+            if (result.equals("X")) {
+                currentStarter = 'O';
+            } else if (result.equals("O")) {
+                currentStarter = 'X';
+            } // If tie, no change
+
+            playing = askToPlayAgain(currentStarter);
         }
 
+        gameLog.saveToFile("game.txt");
         System.out.println("Goodbye!");
     }
 
-    private void playOneGame() {
-        char currentPlayer = 'X';
+    private String playOneGame(char firstPlayer) {
+        char currentPlayer = firstPlayer;
 
         while (true) {
             board.display();
@@ -33,11 +51,11 @@ public class Game {
             if (board.checkWin(currentPlayer)) {
                 board.display();
                 System.out.println("Player " + currentPlayer + " wins!");
-                break;
+                return String.valueOf(currentPlayer);
             } else if (board.isFull()) {
                 board.display();
                 System.out.println("It's a draw!");
-                break;
+                return "Tie";
             }
 
             currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
@@ -66,12 +84,13 @@ public class Game {
         }
     }
 
-    private boolean askToPlayAgain() {
+    private boolean askToPlayAgain(char nextStarter) {
         while (true) {
             System.out.print("Would you like to play again (yes/no)? ");
             String input = scanner.nextLine().trim().toLowerCase();
 
             if (input.equals("yes")) {
+                System.out.println("\nGreat! This time " + nextStarter + " will go first!\n");
                 return true;
             } else if (input.equals("no")) {
                 return false;
