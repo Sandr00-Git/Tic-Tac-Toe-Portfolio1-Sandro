@@ -1,14 +1,14 @@
 package org.example;
 
-import org.example.Board;
-import org.example.GameLog;
-
 import java.util.Scanner;
 
 public class Game {
     private Board board;
     private Scanner scanner;
     private GameLog gameLog;
+    private boolean vsComputer = false;
+    private boolean computerIsFirst = false;
+    private ComputerPlayer computer;
 
     public Game() {
         scanner = new Scanner(System.in);
@@ -17,21 +17,28 @@ public class Game {
 
     public void start() {
         System.out.println("Welcome to Tic-Tac-Toe!");
+
         boolean playing = true;
-        char currentStarter = 'X';  // Start with X by default
+        char currentStarter = 'X';
+
+        selectGameMode();
 
         while (playing) {
             board = new Board();
+            if (vsComputer) {
+                computer = new ComputerPlayer(computerIsFirst ? 'X' : 'O');
+            }
+
             String result = playOneGame(currentStarter);
             gameLog.recordResult(result);
             gameLog.printLog();
 
-            // Swap starting player (loser goes first, winner goes second)
+            // Swap starter (loser goes first)
             if (result.equals("X")) {
                 currentStarter = 'O';
             } else if (result.equals("O")) {
                 currentStarter = 'X';
-            } // If tie, no change
+            }
 
             playing = askToPlayAgain(currentStarter);
         }
@@ -40,12 +47,50 @@ public class Game {
         System.out.println("Goodbye!");
     }
 
+    private void selectGameMode() {
+        System.out.println("What kind of game would you like to play?");
+        System.out.println("1. Human vs. Human");
+        System.out.println("2. Human vs. Computer");
+        System.out.println("3. Computer vs. Human");
+
+        while (true) {
+            System.out.print("What is your selection? ");
+            String input = scanner.nextLine().trim();
+
+            switch (input) {
+                case "1":
+                    vsComputer = false;
+                    return;
+                case "2":
+                    vsComputer = true;
+                    computerIsFirst = false;
+                    System.out.println("\nGreat! You will go first.");
+                    return;
+                case "3":
+                    vsComputer = true;
+                    computerIsFirst = true;
+                    System.out.println("\nGreat! The computer will go first.");
+                    return;
+                default:
+                    System.out.println("That is not a valid entry. Try again.");
+            }
+        }
+    }
+
     private String playOneGame(char firstPlayer) {
         char currentPlayer = firstPlayer;
 
         while (true) {
             board.display();
-            int move = getValidMove(currentPlayer);
+
+            int move;
+            if (vsComputer && currentPlayer == (computerIsFirst ? 'X' : 'O')) {
+                move = computer.chooseMove(board);
+                System.out.println("Computer chooses: " + (move + 1));
+            } else {
+                move = getValidMove(currentPlayer);
+            }
+
             board.makeMove(move, currentPlayer);
 
             if (board.checkWin(currentPlayer)) {

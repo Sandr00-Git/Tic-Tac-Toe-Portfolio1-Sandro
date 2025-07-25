@@ -59,5 +59,8 @@ public class Board {
         }
         return true;
     }
+    public char[] getCells() {
+        return cells.clone(); // defensive copy to avoid mutation
+    }
 }
 
